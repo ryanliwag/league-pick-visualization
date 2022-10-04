@@ -1,99 +1,87 @@
-<template>
-  <div class="app-container">
-    <div class="container">
-      <div class="description-container">
-        <h1>Red and Blue</h1>
-        <button @click="changeData2">Change Data 2</button>
-        <button @click="changeData1">Change Data 1</button>
-        <p>
-          Whereas recognition of the inherent digthis is EB GaramondLorem ipsum
-          dolor sit amet, consectetur adipiscing elit. Etiam congue ex nulla,
-          sed tristique orci cursus nec. Nam commodo, lacus et pharetra pretium,
-          orci ex tempus ligula, nec placerat metus ipsum in velit. Nullam
-          ultrices est non odio laoreet sagittis. Aliquam auctor rutrum purus ac
-          vulputate. Praesent porttitor consectetur ultrices. Sed a vehicula
-          metus. Integer lacinia tellus vel condimentum tempus. Donec ultricies
-          in nibh et tristique. Vivamus ornare eu nisl at facilisis. Nam
-          scelerisque lorem in augue pharetra condimentum. Praesent imperdiet
-          scelerisque ante, at dignissim nibh tincidunt vel. Pellentesque
-          habitant morbi tristique senectus et netus et malesuada fames ac
-          turpis egestas.
-        </p>
-        <p>
-          Quisque tempor in libero semper finibus. Proin sed semper est.
-          Phasellus eu purus vitae purus vulputate pharetra. Nunc feugiat, ante
-          non placerat molestie, eros velit facilisis tellus, vel finibus ipsum
-          sem a nisl. Duis ornare nisl vitae efficitur venenatis. Cras libero
-          ante, scelerisque semper laoreet a, consequat a urna. Aliquam ac magna
-          diam.
-        </p>
-        <div class="description-space first"></div>
-        <h1>What about Bans?</h1>
-        <p>
-          Whereas recognition of the inherent digthis is EB GaramondLorem ipsum
-          dolor sit amet, consectetur adipiscing elit. Etiam congue ex nulla,
-          sed tristique orci cursus nec. Nam commodo, lacus et pharetra pretium,
-          orci ex tempus ligula, nec placerat metus ipsum in velit. Nullam
-          ultrices est non odio laoreet sagittis. Aliquam auctor rutrum purus ac
-          vulputate. Praesent porttitor consectetur ultrices. Sed a vehicula
-          metus. Integer lacinia tellus vel condimentum tempus. Donec ultricies
-          in nibh et tristique. Vivamus ornare eu nisl at facilisis. Nam
-          scelerisque lorem in augue pharetra condimentum. Praesent imperdiet
-          scelerisque ante, at dignissim nibh tincidunt vel. Pellentesque
-          habitant morbi tristique senectus et netus et malesuada fames ac
-          turpis egestas.
-        </p>
-        <p>
-          Quisque tempor in libero semper finibus. Proin sed semper est.
-          Phasellus eu purus vitae purus vulputate pharetra. Nunc feugiat, ante
-          non placerat molestie, eros velit facilisis tellus, vel finibus ipsum
-          sem a nisl. Duis ornare nisl vitae efficitur venenatis. Cras libero
-          ante, scelerisque semper laoreet a, consequat a urna. Aliquam ac magna
-          diam.
-        </p>
-        <div class="description-space sec"></div>
-      </div>
-      <div class="visual-container" ref="vizContainer">
-        <Visualization :initialNodes="data_t" :vis_step="vis_step"/>
-      </div>
-    </div>
-    <!-- <HelloWorld msg="Welcome to Your Vue.js App" /> -->
-  </div>
-</template>
-
 <script>
 // import BubbleChart from "./components/BubbleChart.vue";
-import Visualization from "./components/Visualization.vue"
-import Data from "./lol_pb_data.json";
+// import Visualization from "./components/Visualization.vue";
+import LolData from "./data/lol_dataset_v2.json";
+import { ref } from "vue";
+
+// See this file to see how the IntersectionObserver is implemented
+import { onIntersect } from "./composables/onIntersect";
+import Visualization from './components/Visualization2';
+const observer_1 = ref({});
+const observer_2 = ref({})
 export default {
   name: "App",
   data: function () {
     return {
-      data_t: [],
+      data: [],
+      isVisible: false,
+      loading: true,
+      show: false,
       vis_step: 1,
+      regionVis: "lpl",
+      toggleWinRate: true,
+      visible: false,
+      section: 0,
     };
   },
   components: {
+    Visualization,
     // BubbleChart,
-    Visualization
+    // Visualization,
   },
   mounted() {
-    console.log(Data);
+    console.log(LolData);
+    observer_1.value = onIntersect(
+      document.querySelector("#section-1"),
+      this.onEnter_lck,
+      this.onExit
+    );
+    observer_2.value = onIntersect(
+      document.querySelector("#section-2"),
+      this.onEnter_lpl,
+      this.onExit,
+    )
   },
+
   created() {
-    this.data_t = Data;
+    this.loadData();
+    console.log(this.data)
   },
   methods: {
-    changeData2(){ 
-      console.log(this.vis_step)
-      this.vis_step = 2
+    loadData() {
+      this.loading = false;
+      this.data = LolData;
     },
-    changeData1() {
-      this.vis_step = 1
-    }
-  }
+    onEnter_lpl() {
+      console.log("I see you");
+      this.regionVis = 'lpl'
+      this.toggleWinRate = true
+    },
+    onEnter_lck() {
+      this.regionVis ='lck'
+      this.toggleWinRate = false
+    },
+    onExit() {
+      console.log("Bye");
+    },
+  },
 };
 </script>
+
+<template>
+  <div class="app-container">
+    <div class="container">
+      <div class="section-container" id="section-1">hello</div>
+      <div class="section-container" id="section-2">hello2</div>
+    </div>
+    <div class="visual-container" ref="vizContainer">
+      <template v-if="loading">loading</template>
+      <template v-else>data loaded</template>
+      {{regionVis}}
+      <Visualization :initialNodes="data" :section='regionVis' :toggleWinRate='toggleWinRate'/>
+    </div>
+  </div>
+</template>
 
 <style lang="scss">
 @import url("https://fonts.googleapis.com/css?family=Roboto+Condensed");
@@ -135,7 +123,7 @@ body p {
 }
 
 .container {
-  margin: 2rem 0;
+  margin: 10rem 0;
   width: 80vw;
   max-width: 90vw;
   min-height: 375px;
@@ -152,8 +140,16 @@ body p {
   // padding: 10px;
 }
 
-.description-container {
+.section-container {
+  border: #282832;
   z-index: 1;
+  height: 60vh;
+  width: 100%;
+  margin-bottom: 5rem;
+}
+
+.description-container {
+  z-index: -999;
   // display: flex;
   // flex-direction: column;
   // justify-content: flex-start;
@@ -170,7 +166,7 @@ body p {
   // left: 310px;
   // top: 25%;
   // /* margin: 0 1rem;
-  width: 80vw ;
+  width: 80vw;
   height: 60vh;
   left: 10%;
   top: 25%;
@@ -179,7 +175,6 @@ body p {
 
 .description-space {
   &.first {
-
     height: 60vh;
   }
   &.sec {
