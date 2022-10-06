@@ -6,9 +6,11 @@ import { ref } from "vue";
 
 // See this file to see how the IntersectionObserver is implemented
 import { onIntersect } from "./composables/onIntersect";
-import Visualization from './components/Visualization2';
+import Visualization from "./components/Visualization2";
 const observer_1 = ref({});
-const observer_2 = ref({})
+const observer_2 = ref({});
+const observer_intro = ref({});
+const observer_noVis = ref({});
 export default {
   name: "App",
   data: function () {
@@ -19,7 +21,9 @@ export default {
       show: false,
       vis_step: 1,
       regionVis: "lpl",
-      toggleWinRate: true,
+      toggleWinRate: false,
+      toggleVisExplain: true,
+      startVisualization: false,
       visible: false,
       section: 0,
     };
@@ -30,7 +34,16 @@ export default {
     // Visualization,
   },
   mounted() {
-    console.log(LolData);
+    observer_noVis.value = onIntersect(
+      document.querySelector("#noVis"),
+      this.onEnter_noVis,
+      this.onExit_noVis
+    );
+    observer_intro.value = onIntersect(
+      document.querySelector("#section-intro"),
+      this.onEnter_intro,
+      this.onExit
+    );
     observer_1.value = onIntersect(
       document.querySelector("#section-1"),
       this.onEnter_lck,
@@ -39,31 +52,49 @@ export default {
     observer_2.value = onIntersect(
       document.querySelector("#section-2"),
       this.onEnter_lpl,
-      this.onExit,
-    )
+      this.onExit
+    );
   },
 
   created() {
     this.loadData();
-    console.log(this.data)
+    console.log(this.data);
   },
+  computed: {},
   methods: {
     loadData() {
       this.loading = false;
       this.data = LolData;
     },
+    onEnter_intro() {
+      this.startVisualization = true;
+      this.toggleVisExplain = true;
+    },
+    onEnter_noVis() {
+      this.startVisualization = false;
+    },
     onEnter_lpl() {
       console.log("I see you");
-      this.regionVis = 'lpl'
-      this.toggleWinRate = true
+      this.regionVis = "lpl";
+      this.toggleWinRate = true;
+      this.toggleVisExplain = false;
     },
     onEnter_lck() {
-      this.regionVis ='lck'
-      this.toggleWinRate = false
+      this.regionVis = "lck";
+      this.toggleWinRate = false;
+      this.toggleVisExplain = false;
     },
-    onExit() {
+    onExit_intro() {
+      this.startVisualization = false;
+    },
+    onExit_noVis() {
+      // this.to = false;
+      this.startVisualization = true
       console.log("Bye");
     },
+    onExit(){
+
+    }
   },
 };
 </script>
@@ -71,15 +102,89 @@ export default {
 <template>
   <div class="app-container">
     <div class="container">
-      <div class="section-container" id="section-1">hello</div>
-      <div class="section-container" id="section-2">hello2</div>
+      <div class="intro-container" id="noVis">
+        <h1>Visualizing Champions in Pro Play</h1>
+        <p>
+          Visualization combines data from 4 major regions of LPL, LCK, LCS and
+          LEC. All data is consitstent with the same 19.32-19.67 patch.
+        </p>
+        <p>
+          Historically Blue side has had advantage not just in proplay but also
+          in soloq games. Currently as of patch 12.11, blue side has a 4%
+          winrate advantage over red.
+        </p>
+        <p>
+          League's map is not symmetrical, it may offer certain champions better
+          chances in lane simply through side selection. Blue side gets more
+          dragons and heralds, but red side gets more dragons but this is also
+          dependent on the impact of early game. Dragon stacking and early game
+          gold advantage of herald has given the blue side enough of an
+          advantage that red wouldnt even be able to contest or take baron.
+          Dragon and Heralds have the added bonus of giving the blue team a
+          better chance to win.
+        </p>
+        <p>
+          Blue side just sees more in their screen, as the camera angle is not
+          rectangular in league. You have a trapezoidal view where you see more
+          on the top part of your screen compared to the bottom. ALthough in
+          proplay, this may be less of a contributing factor. blue side is
+          definitely better. Just think about trying to fight your way down the
+          blue side top and realize that hitboxes start at the feet. This means
+          the character models you are facing are in fact further away then they
+          appear and your model is closer to them then it appears. for certain
+          skill shots that have a tendency to latch on even if its at the very
+          edge its a major advantage. coming down also means you will be more
+          impeded by the hud. i have accidently hit my mini map trying to ult
+          south bound with lux meaning it just randomly fires in whatever
+          direction. this is simply not an issue with blue side at all. also the
+          blind spot provided by standing behind your tower is more advantageous
+          to blue side as its closer to the jungle entrance meaning its quicker
+          to reach and to leave it for better roaming.
+        </p>
+      </div>
+      <div class="section-container intro" id="section-intro">
+        <h2>How the Visualization Works</h2>
+        <p>
+          Each champion is represented as a bubble, and size is determined by
+          number of time champions has been picked or banned in througout the
+          season. Red and Blue color shows percentage share of either red or
+          blue side pick rate of the champion.
+        </p>
+      </div>
+      <div class="description-space" />
+      <div class="section-container">
+        <h2>Red vs Blue</h2>
+        <p>
+          Each champion is represented as a bubble, and size is determined by
+          number of time champions has been picked or banned in througout the
+          season. Red and Blue color shows percentage share of either red or
+          blue side pick rate of the champion.
+        </p>
+      </div>
+      <div class="description-space" id="section-1" />
+      <div class="section-container">
+        <h2>Win rate?</h2>
+        <p>
+          Each champion is represented as a bubble, and size is determined by
+          number of time champions has been picked or banned in througout the
+          season. Red and Blue color shows percentage share of either red or
+          blue side pick rate of the champion.
+        </p>
+      </div>
+      <div class="description-space" id="section-2" />
     </div>
-    <div class="visual-container" ref="vizContainer">
-      <template v-if="loading">loading</template>
-      <template v-else>data loaded</template>
-      {{regionVis}}
-      <Visualization :initialNodes="data" :section='regionVis' :toggleWinRate='toggleWinRate'/>
-    </div>
+    <template v-if="loading">loading</template>
+    <template v-else>
+      <div class="visual-container" ref="vizContainer">
+        <Visualization
+          :initialNodes="data"
+          :section="regionVis"
+          :toggleVisExplain="toggleVisExplain"
+          :toggleWinRate="toggleWinRate"
+          :startVisualization="startVisualization"
+        />
+      </div>
+    </template>
   </div>
 </template>
 
@@ -92,24 +197,31 @@ html,
 body {
   margin: 0;
 
-  background: linear-gradient(
-    179.08deg,
-    #282832 0.79%,
-    #2e3856 38.95%,
-    #3d3c5e 70.92%,
-    #463152 99.79%
-  );
+  // background: linear-gradient(
+  //   179.08deg,
+  //   #282832 0.79%,
+  //   #2e3856 38.95%,
+  //   #3d3c5e 70.92%,
+  //   #463152 99.79%
+  // );
+  background: #282832;
+  font-family: "Owsald", sans-serif;
 }
 
 body h1 {
   color: white;
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-family: "Owsald", sans-serif;
+}
+
+h2 {
+  font-size: 2rem;
+  color: white;
 }
 
 body p {
   color: white;
-  font-size: 14px;
+  font-size: 1rem;
   font-family: "EB Garamond", sans-serif;
 }
 
@@ -123,7 +235,6 @@ body p {
 }
 
 .container {
-  margin: 10rem 0;
   width: 80vw;
   max-width: 90vw;
   min-height: 375px;
@@ -143,13 +254,24 @@ body p {
 .section-container {
   border: #282832;
   z-index: 1;
-  height: 60vh;
-  width: 100%;
-  margin-bottom: 5rem;
+  max-width: 600px;
+  margin: 0 1rem;
+  background-color: gray;
+  padding: 1rem;
+}
+
+.intro-container {
+  max-width: 600px;
+  margin: 0 1rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .description-container {
-  z-index: -999;
+  z-index: 1;
   // display: flex;
   // flex-direction: column;
   // justify-content: flex-start;
@@ -166,21 +288,28 @@ body p {
   // left: 310px;
   // top: 25%;
   // /* margin: 0 1rem;
-  width: 80vw;
-  height: 60vh;
-  left: 10%;
-  top: 25%;
-  // background-color: yellow;
+  width: 95vw;
+  height: 80vh;
+  top: 10%;
+  z-index: 0;
+  // background-
 }
 
 .description-space {
-  &.first {
-    height: 60vh;
-  }
-  &.sec {
-    height: 80vh;
-  }
+  height: 70vh;
+  min-height: 1000px;
+  width: 100%;
+  margin: 10vh 0;
 }
+
+// .description-space {
+//   &.first {
+//     height: 60vh;
+//   }
+//   &.sec {
+//     height: 80vh;
+//   }
+// }
 
 .Grid {
   display: flex;
