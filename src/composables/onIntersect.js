@@ -4,7 +4,7 @@ export const onIntersect = (
   callback,
   outCallback = () => {},
   once = false,
-  options = { threshold: 0.5 }
+  options = { threshold: 1   }
 ) => {
   // Initiate the observer
   const observer = new IntersectionObserver(([entry]) => {

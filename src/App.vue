@@ -3,7 +3,7 @@
 // import Visualization from "./components/Visualization.vue";
 import LolData from "./data/lol_dataset_v2.json";
 import { ref } from "vue";
-
+import Button from "./components/button.vue";
 // See this file to see how the IntersectionObserver is implemented
 import { onIntersect } from "./composables/onIntersect";
 import Visualization from "./components/Visualization2";
@@ -20,16 +20,23 @@ export default {
       loading: true,
       show: false,
       vis_step: 1,
-      regionVis: "lpl",
+      regionVis: "LPL",
       toggleWinRate: false,
       toggleVisExplain: true,
       startVisualization: false,
       visible: false,
       section: 0,
+      regions: [
+        { region: "lcs", selected: true },
+        { region: "lpl", selected: false },
+        { region: "lck", selected: false },
+        { region: "lec", selected: false },
+      ],
     };
   },
   components: {
     Visualization,
+    Button,
     // BubbleChart,
     // Visualization,
   },
@@ -62,6 +69,16 @@ export default {
   },
   computed: {},
   methods: {
+    changeRegion(region) {
+      console.log("region CHanged", region);
+      this.regions = this.regions.map((v) => {
+        if (v.region == region) {
+          return { ...v, selected: true };
+        } else {
+          return { ...v, selected: false };
+        }
+      });
+    },
     loadData() {
       this.loading = false;
       this.data = LolData;
@@ -75,12 +92,10 @@ export default {
     },
     onEnter_lpl() {
       console.log("I see you");
-      this.regionVis = "lpl";
       this.toggleWinRate = true;
       this.toggleVisExplain = false;
     },
     onEnter_lck() {
-      this.regionVis = "lck";
       this.toggleWinRate = false;
       this.toggleVisExplain = false;
     },
@@ -89,12 +104,10 @@ export default {
     },
     onExit_noVis() {
       // this.to = false;
-      this.startVisualization = true
+      // this.startVisualization = true;
       console.log("Bye");
     },
-    onExit(){
-
-    }
+    onExit() {},
   },
 };
 </script>
@@ -160,6 +173,21 @@ export default {
           season. Red and Blue color shows percentage share of either red or
           blue side pick rate of the champion.
         </p>
+
+        <Button
+          v-for="region in regions"
+          :key="region.region"
+          :isSelected="region.selected"
+          @changeRegion="changeRegion(region.region)"
+          >{{ region.region.toUpperCase() }}</Button
+        >
+        <!-- <div>
+          <Button v-for=> </Button>
+          <Button isSelected="true" @changeRegion="changeRegion('LCS')" region='lcs'>LCS</Button>
+<Button isSelected="true" @changeRegion="changeRegion('LCS')" region='lcs'>LCS</Button>
+<Button isSelected="true" @changeRegion="changeRegion('LCS')" region='lcs'>LCS</Button>
+
+        </div> -->
       </div>
       <div class="description-space" id="section-1" />
       <div class="section-container">
@@ -178,7 +206,7 @@ export default {
       <div class="visual-container" ref="vizContainer">
         <Visualization
           :initialNodes="data"
-          :section="regionVis"
+          :section="regions.filter((v) => v.selected == true)[0].region"
           :toggleVisExplain="toggleVisExplain"
           :toggleWinRate="toggleWinRate"
           :startVisualization="startVisualization"
@@ -204,23 +232,23 @@ body {
   //   #3d3c5e 70.92%,
   //   #463152 99.79%
   // );
-  background: #282832;
+  background: #e4eae1;
   font-family: "Owsald", sans-serif;
 }
 
 body h1 {
-  color: white;
+  color: black;
   font-size: 2.5rem;
   font-family: "Owsald", sans-serif;
 }
 
 h2 {
+  color: black;
   font-size: 2rem;
-  color: white;
 }
 
 body p {
-  color: white;
+  color: black;
   font-size: 1rem;
   font-family: "EB Garamond", sans-serif;
 }
@@ -252,12 +280,15 @@ body p {
 }
 
 .section-container {
-  border: #282832;
+  border: #8c8c8c;
   z-index: 1;
   max-width: 600px;
   margin: 0 1rem;
-  background-color: gray;
+  background-color: #eeeeee;
   padding: 1rem;
+
+  box-shadow: 0px 8px 12px rgba(0, 0, 0, 0.5);
+  opacity: 1;
 }
 
 .intro-container {
@@ -288,19 +319,24 @@ body p {
   // left: 310px;
   // top: 25%;
   // /* margin: 0 1rem;
-  width: 95vw;
-  height: 80vh;
+  width: 1200px;
+  height: 90vh;
+
   top: 10%;
   z-index: 0;
   // background-
 }
 
 .description-space {
-  height: 70vh;
-  min-height: 1000px;
+  height: 60vh;
+  min-height: 600px;
   width: 100%;
   margin: 10vh 0;
 }
+
+// @media (min-width: 768px) {
+
+// }
 
 // .description-space {
 //   &.first {

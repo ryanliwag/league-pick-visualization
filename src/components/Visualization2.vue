@@ -8,19 +8,21 @@
       <g class="plot__axes">
         <!-- <g class="plot__axes__x"></g> -->
         <g class="plot__axes__y">
-          <text x="100" y="50">Win Rate</text>
+          <text text-anchor="end" :x="margin.left" :y="80">
+            ↑ Champion Win Rate
+          </text>
         </g>
       </g>
       <line
         :x1="innerWidth / 2"
-        :y1="10"
+        :y1="100"
         :x2="innerWidth / 2"
         :y2="innerHeight"
         style="stroke: gray; stroke-width: 2; opacity: 0.7"
       />
       <text
         :x="innerWidth / 2"
-        y="0"
+        y="100"
         font-size="10"
         text-anchor="middle"
         style="fill: white"
@@ -32,7 +34,7 @@
         :transform="`translate(${innerWidth / 2}, ${innerHeight / 2})`"
       >
         <text
-          :y="-innerHeight * 0.9"
+          y="150"
           font-size="1.2rem"
           text-anchor="middle"
           style="fill: white"
@@ -40,10 +42,20 @@
           Size of Bubble depends on total pick rate
         </text>
 
-        <text x="100" font-size="1.2rem" text-anchor="start" style="fill: red">
+        <text
+          x="100"
+          font-size="1.2rem"
+          text-anchor="start"
+          style="fill: #f51641"
+        >
           Red Pick Rate →
         </text>
-        <text x="-100" font-size="1.2rem" text-anchor="end" style="fill: blue">
+        <text
+          x="-100"
+          font-size="1.2rem"
+          text-anchor="end"
+          style="fill: #5496d0"
+        >
           ← Blue Pick Rate
         </text>
       </g>
@@ -54,27 +66,12 @@
             'translate(' + innerWidth / 2 + ',' + innerHeight / 2 + ')'
           "
         >
-          <defs>
-            <clipPath :id="'circle-sample'">
-              <rect
-                x="0"
-                y="-300"
-                :width="circularSegment(0.5) * 2 * 300"
-                height="100rem"
-              ></rect>
-            </clipPath>
-          </defs>
-          <circle r="6rem" stroke="white" fill="blue" />
-          <circle r="6rem" :clip-path="'url(#circle-sample)'" fill="red" />
-          <text
-            fill="white"
-            alignment-baseline="central"
-            text-anchor="middle"
-            :font-size="scales.f(sampleNode[section].totalpickrate)"
-            y="0"
-          >
-            {{ sampleNode.champion }}
-          </text>
+          <CircleNode
+            :NodeVal="sampleNode['lec']"
+            r="50"
+            f="20"
+            toggleWinRate="true"
+          />
         </g>
         <g
           v-else
@@ -83,62 +80,12 @@
           :key="node.index"
           :transform="'translate(' + node.x + ',' + node.y + ')'"
         >
-          <defs>
-            <clipPath :id="'circle' + node.index">
-              <rect
-                :x="
-                  scales.r(node[section].totalpickrate) -
-                  1 *
-                    scales.r(node[section].totalpickrate) *
-                    2 *
-                    circularSegment(node[section].red_weight)
-                "
-                :y="-scales.r(node[section].totalpickrate)"
-                :width="
-                  circularSegment(node[section].red_weight) *
-                  2 *
-                  scales.r(node[section].totalpickrate)
-                "
-                :height="scales.r(node[section].totalpickrate) * 2"
-              ></rect>
-            </clipPath>
-          </defs>
-          <circle
+          <CircleNode
+            :NodeVal="node[section]"
             :r="scales.r(node[section].totalpickrate)"
-            stroke="white"
-            fill="blue"
-            v-if="node[section].totalpickrate > 0"
+            :f="scales.f(node[section].totalpickrate)"
+            :toggleWinRate="toggleWinRate"
           />
-          <circle
-            :r="scales.r(node[section].totalpickrate)"
-            :clip-path="'url(#circle' + node.index + ')'"
-            fill="red"
-            v-if="node[section].totalpickrate > 0"
-          />
-          <text
-            fill="white"
-            alignment-baseline="central"
-            text-anchor="middle"
-            :font-size="scales.f(node[section].totalpickrate)"
-            v-if="node[section].totalpickrate > 0"
-            :y="
-              node[section].totalpickrate > 0.1
-                ? 0
-                : -(scales.r(node[section].totalpickrate) + 5)
-            "
-          >
-            {{ node.champion }}
-          </text>
-          <text
-            fill="white"
-            alignment-baseline="central"
-            text-anchor="middle"
-            :font-size="scales.f(node[section].totalpickrate) - 5"
-            v-if="(node[section].totalpickrate > 0.2) & toggleWinRate"
-            y="20"
-          >
-            {{ Math.round(node[section].winrate * 100, 2) + "% WR" }}
-          </text>
         </g>
       </g>
     </g>
@@ -146,7 +93,7 @@
 </template>
 <script>
 import * as d3 from "d3";
-
+import CircleNode from "./CircleNode.vue";
 export default {
   props: [
     "initialNodes",
@@ -156,10 +103,13 @@ export default {
     "toggleVisExplain",
     "startVisualization",
   ],
+  components: {
+    CircleNode,
+  },
   data() {
     return {
       nodes: this.initialNodes,
-      margin: { top: 50, bottom: 50, left: 50, right: 50 },
+      margin: { top: 100, bottom: 100, left: 50, right: 50 },
       width: 0,
       height: 0,
       scales: {
@@ -171,7 +121,7 @@ export default {
       x_scale_margin: 100,
       yAxisPadding: 100,
       simulation: null,
-      sampleNode: this.initialNodes.filter((v) => v.champion == "ZERI")[0],
+      sampleNode: this.initialNodes.filter((v) => v.champion == "GWEN")[0],
     };
   },
   mounted() {
@@ -194,38 +144,8 @@ export default {
     );
   },
   created() {
-    console.log(this.sampleNode[this.section]);
-    // assign sample node
-    // this.scales.x = d3
-    //   .scaleLinear()
-    //   .domain([0, 1])
-    //   .range([this.margin.left, this.innerWidth]);
-    // // y axis scale
-    // this.scales.y = d3
-    //   .scaleLinear()
-    //   .domain([0, 1])
-    //   .range([this.innerHeight, this.margin.top]);
-    // this.simulation = d3
-    //   .forceSimulation(this.nodes)
-    //   .force("charge", d3.forceManyBody().strength(-0.01))
-    //   .force(
-    //     "x",
-    //     d3.forceX((d) => this.scales.x(d[this.section].red_weight))
-    //   )
-    //   .force(
-    //     "y",
-    //     d3.forceY((d) =>
-    //       this.toggleWinRate
-    //         ? this.scales.y(d[this.section].winrate)
-    //         : this.scales.y(0.5)
-    //     )
-    //   )
-    //   .force(
-    //     "collision",
-    //     d3.forceCollide().radius((d) => {
-    //       return this.scales.r(d[this.section].totalpickrate) + 5;
-    //     })
-    //   );
+    console.log(this.section);
+    this.simulation = d3.forceSimulation(this.nodes);
   },
   watch: {
     startVisualization: {
@@ -241,6 +161,7 @@ export default {
         console.log(newVal, oldVal);
         if (oldVal != newVal) {
           this.DrawAxis();
+          this.UpdateSimulationData();
         }
       },
       immediate: false,
@@ -273,9 +194,9 @@ export default {
   methods: {
     showVis() {
       if (this.startVisualization) {
-        d3.select(".wrapper").transition().duration(200).attr("opacity", 1);
+        d3.select(".wrapper").transition().duration(1000).attr("opacity", 1);
       } else {
-        d3.select(".wrapper").transition().duration(200).attr("opacity", 0);
+        d3.select(".wrapper").transition().duration(1000).attr("opacity", 0);
       }
     },
     changeDescView() {
@@ -285,7 +206,7 @@ export default {
           .duration(600)
           .attr(
             "transform",
-            `translate(${this.innerWidth / 2}, ${this.innerHeight})`
+            `translate(${this.innerWidth / 2}, ${this.innerHeight / 2})`
           )
           .attr("opacity", 1);
       } else {
@@ -296,43 +217,9 @@ export default {
           .attr("opacity", 0);
       }
     },
-    setScales() {
-      this.scales.x = d3
-        .scaleLinear()
-        .domain([0, 1])
-        .range([this.x_scale_margin, this.innerWidth - this.x_scale_margin]);
-
-      // y axis scale
-      this.scales.y = d3
-        .scaleBand()
-        .domain(["All"])
-        .range([this.innerHeight, 0])
-        .padding(1);
-    },
-    // changeData() {
-    //   this.scales.y = d3
-    //     .scaleLinear()
-    //     .domain([1, 7])
-    //     .range([
-    //       this.margin.top + this.yAxisPadding,
-    //       this.innerHeight - this.yAxisPadding,
-    //     ]);
-    //   d3.select(".plot__axes__y").call(d3.axisLeft(this.scales.y));
-
-    //   // update simulation
-    //   this.simulation.force(
-    //     "y",
-    //     d3.forceY((d) => Math.round(this.scales.y(d.pick_order_mean)))
-    //   );
-    //   this.simulation.alpha(1).alphaDecay(0.001).velocityDecay(0.3).restart();
-    // },
     render() {
-      // this.setScales();
       this.initChart();
       this.DrawAxis();
-      // this.UpdateSimulationData();
-      // this.UpdateSimulationData();
-      // this.initSimulation();
     },
     initChart() {
       // this.simulation;
@@ -342,25 +229,25 @@ export default {
         .range([this.x_scale_margin, this.innerWidth - this.x_scale_margin]);
 
       this.scales.y = d3
-        .scaleBand()
-        .domain(["All"])
-        .range([this.innerHeight, 0])
-        .padding(1);
+        .scaleLinear()
+        .domain([0, 1])
+        .range([this.innerHeight, this.margin.top]);
 
       this.UpdateSimulationData();
     },
-
+    ticked() {
+      // this.nodes = this.nodes.map((v) => {
+      //   return { ...v, cx1: v.x, cy1: v.y };
+      // });
+    },
     UpdateSimulationData() {
-      console.log(this.toggleWinRate);
-      this.simulation = d3
-        .forceSimulation(this.nodes)
-        .force("charge", d3.forceManyBody().strength(-0.1))
+      this.simulation
         .force(
           "x",
           d3
             .forceX()
             .x((d) => this.scales.x(d[this.section].red_weight))
-            .strength(0.8)
+            .strength(this.toggleWinRate ? 0.03 : 0.7)
         )
         .force(
           "y",
@@ -369,30 +256,21 @@ export default {
             .y((d) =>
               this.toggleWinRate
                 ? this.scales.y(d[this.section].winrate)
-                : this.scales.y("All")
+                : this.scales.y(0.5)
             )
-            .strength(1)
+            .strength(this.toggleWinRate ? 1 : 0.02)
         )
         .force(
           "collision",
           d3.forceCollide().radius((d) => {
             return this.scales.r(d[this.section].totalpickrate) + 8;
           })
-        );
-
-      // console.log("Update", this.section);
-      // const nodes_to = d3.selectAll(".plot__circles");
-      // nodes_to.exit().remove();
-      // console.log(this.nodes, this.section);
-      // this.simulation.stop()
-      this.simulation.alpha(1).alphaDecay(0.05).velocityDecay(0.3).restart();
+        )
+        .on("tick", this.ticked);
+      this.simulation.alpha(0.1).alphaDecay(0).restart();
     },
     DrawAxis() {
       if (this.toggleWinRate) {
-        this.scales.y = d3
-          .scaleLinear()
-          .domain([0, 1])
-          .range([this.innerHeight, this.margin.top]);
         d3.select(".plot__axes__y")
           .transition()
           .duration(1000)
@@ -404,11 +282,6 @@ export default {
               .ticks(5)
           );
       } else {
-        this.scales.y = d3
-          .scaleBand()
-          .domain(["All"])
-          .range([this.innerHeight, this.margin.top])
-          .padding(1);
         d3.select(".plot__axes__y")
           .transition()
           .duration(1000)
@@ -417,26 +290,10 @@ export default {
 
       d3.selectAll(".domain").remove();
 
-      d3.select(".plot__axes__x")
-        .transition()
-        .duration(500)
-        .call(d3.axisTop(this.scales.x));
-    },
-    circularSegment(frac) {
-      // Calculate the Circular Segment from a fraction input.
-      let h = frac;
-      if (h > 0 && h < 1) {
-        let t0,
-          t1 = Math.pow(12 * h * Math.PI, 1 / 3);
-        for (let i = 0; i < 10; ++i) {
-          t0 = t1;
-          t1 =
-            (Math.sin(t0) - t0 * Math.cos(t0) + 2 * h * Math.PI) /
-            (1 - Math.cos(t0));
-        }
-        h = (1 - Math.cos(t1 / 2)) / 2;
-      }
-      return h;
+      // d3.select(".plot__axes__x")
+      //   .transition()
+      //   .duration(500)
+      //   .call(d3.axisTop(this.scales.x));
     },
   },
 };
@@ -460,11 +317,27 @@ export default {
 //       medianLine.transition(t).attr('y2', split ? splitHeight - 20 : noSplitHeight);
 </script>
 
-<style>
+<style lang="scss">
 #Visualization {
   fill: red;
 }
 .btn {
   z-index: 1000;
+}
+.plot__axes__y {
+  fill: white;
+  color: white;
+
+  &line {
+    stroke: red;
+  }
+
+  &.path {
+    stroke: red;
+  }
+
+  &text {
+    fill: red;
+  }
 }
 </style>
