@@ -93,6 +93,7 @@ export default {
     {{ Math.round(NodeVal.winrate * 100, 2) + "% WR" }}
   </text>
   <text
+    class="Node--circle text"
     alignment-baseline="central"
     text-anchor="middle"
     :font-size="f - 5"
@@ -113,7 +114,7 @@ export default {
   }
 
   &.text {
-    fill: black;
+    fill: whitesmoke;
   }
 }
 </style>

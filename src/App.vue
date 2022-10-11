@@ -9,23 +9,17 @@ import { onIntersect } from "./composables/onIntersect";
 import Visualization from "./components/Visualization2";
 const observer_1 = ref({});
 const observer_2 = ref({});
-const observer_intro = ref({});
 const observer_noVis = ref({});
+const observer_intro = ref({});
 export default {
   name: "App",
   data: function () {
     return {
       data: [],
-      isVisible: false,
       loading: true,
-      show: false,
-      vis_step: 1,
-      regionVis: "LPL",
       toggleWinRate: false,
-      toggleVisExplain: true,
+      toggleVisExplain: false,
       startVisualization: false,
-      visible: false,
-      section: 0,
       regions: [
         { region: "lcs", selected: true },
         { region: "lpl", selected: false },
@@ -47,18 +41,18 @@ export default {
       this.onExit_noVis
     );
     observer_intro.value = onIntersect(
-      document.querySelector("#section-intro"),
+      document.querySelector("#introVis"),
       this.onEnter_intro,
       this.onExit
     );
     observer_1.value = onIntersect(
       document.querySelector("#section-1"),
-      this.onEnter_lck,
+      this.onEnter_Visualization,
       this.onExit
     );
     observer_2.value = onIntersect(
       document.querySelector("#section-2"),
-      this.onEnter_lpl,
+      this.onEnter_toggle_winrate,
       this.onExit
     );
   },
@@ -83,29 +77,27 @@ export default {
       this.loading = false;
       this.data = LolData;
     },
-    onEnter_intro() {
-      this.startVisualization = true;
-      this.toggleVisExplain = true;
-    },
     onEnter_noVis() {
       this.startVisualization = false;
     },
-    onEnter_lpl() {
+    onExit_noVis() {
+      this.startVisualization = true;
+      this.toggleVisExplain = true;
+    },
+    onEnter_intro() {
+      this.toggleVisExplain = true;
+      this.startVisualization = true;
+    },
+    onEnter_Visualization() {
+      this.toggleWinRate = false;
+      this.startVisualization = true;
+      this.toggleVisExplain = false;
+    },
+    onEnter_toggle_winrate() {
       console.log("I see you");
       this.toggleWinRate = true;
+      this.startVisualization = true;
       this.toggleVisExplain = false;
-    },
-    onEnter_lck() {
-      this.toggleWinRate = false;
-      this.toggleVisExplain = false;
-    },
-    onExit_intro() {
-      this.startVisualization = false;
-    },
-    onExit_noVis() {
-      // this.to = false;
-      // this.startVisualization = true;
-      console.log("Bye");
     },
     onExit() {},
   },
@@ -116,47 +108,18 @@ export default {
   <div class="app-container">
     <div class="container">
       <div class="intro-container" id="noVis">
-        <h1>Visualizing Champions in Pro Play</h1>
+        <h1>Visualizing League Champions in Pro Play</h1>
+        <div class="contact">
+          <p>Visualization built by: Ryan Liwag</p>
+          <p>Contact: rjhontomin@gmail.com</p>
+        </div>
+      </div>
+      <div class="section-container intro">
+        <h2>How the Visualization Works</h2>
         <p>
           Visualization combines data from 4 major regions of LPL, LCK, LCS and
           LEC. All data is consitstent with the same 19.32-19.67 patch.
         </p>
-        <p>
-          Historically Blue side has had advantage not just in proplay but also
-          in soloq games. Currently as of patch 12.11, blue side has a 4%
-          winrate advantage over red.
-        </p>
-        <p>
-          League's map is not symmetrical, it may offer certain champions better
-          chances in lane simply through side selection. Blue side gets more
-          dragons and heralds, but red side gets more dragons but this is also
-          dependent on the impact of early game. Dragon stacking and early game
-          gold advantage of herald has given the blue side enough of an
-          advantage that red wouldnt even be able to contest or take baron.
-          Dragon and Heralds have the added bonus of giving the blue team a
-          better chance to win.
-        </p>
-        <p>
-          Blue side just sees more in their screen, as the camera angle is not
-          rectangular in league. You have a trapezoidal view where you see more
-          on the top part of your screen compared to the bottom. ALthough in
-          proplay, this may be less of a contributing factor. blue side is
-          definitely better. Just think about trying to fight your way down the
-          blue side top and realize that hitboxes start at the feet. This means
-          the character models you are facing are in fact further away then they
-          appear and your model is closer to them then it appears. for certain
-          skill shots that have a tendency to latch on even if its at the very
-          edge its a major advantage. coming down also means you will be more
-          impeded by the hud. i have accidently hit my mini map trying to ult
-          south bound with lux meaning it just randomly fires in whatever
-          direction. this is simply not an issue with blue side at all. also the
-          blind spot provided by standing behind your tower is more advantageous
-          to blue side as its closer to the jungle entrance meaning its quicker
-          to reach and to leave it for better roaming.
-        </p>
-      </div>
-      <div class="section-container intro" id="section-intro">
-        <h2>How the Visualization Works</h2>
         <p>
           Each champion is represented as a bubble, and size is determined by
           number of time champions has been picked or banned in througout the
@@ -164,7 +127,7 @@ export default {
           blue side pick rate of the champion.
         </p>
       </div>
-      <div class="description-space" />
+      <div class="description-space" id="introVis" />
       <div class="section-container">
         <h2>Red vs Blue</h2>
         <p>
@@ -181,17 +144,10 @@ export default {
           @changeRegion="changeRegion(region.region)"
           >{{ region.region.toUpperCase() }}</Button
         >
-        <!-- <div>
-          <Button v-for=> </Button>
-          <Button isSelected="true" @changeRegion="changeRegion('LCS')" region='lcs'>LCS</Button>
-<Button isSelected="true" @changeRegion="changeRegion('LCS')" region='lcs'>LCS</Button>
-<Button isSelected="true" @changeRegion="changeRegion('LCS')" region='lcs'>LCS</Button>
-
-        </div> -->
       </div>
       <div class="description-space" id="section-1" />
       <div class="section-container">
-        <h2>Win rate?</h2>
+        <h2>What about Win rate?</h2>
         <p>
           Each champion is represented as a bubble, and size is determined by
           number of time champions has been picked or banned in througout the
@@ -225,30 +181,30 @@ html,
 body {
   margin: 0;
 
-  // background: linear-gradient(
-  //   179.08deg,
-  //   #282832 0.79%,
-  //   #2e3856 38.95%,
-  //   #3d3c5e 70.92%,
-  //   #463152 99.79%
-  // );
-  background: #e4eae1;
+  background: linear-gradient(
+    179.08deg,
+    #282832 0.79%,
+    #2e3856 38.95%,
+    #3d3c5e 70.92%,
+    #463152 99.79%
+  );
+  // background: #e4eae1;
   font-family: "Owsald", sans-serif;
 }
 
 body h1 {
-  color: black;
+  color: white;
   font-size: 2.5rem;
   font-family: "Owsald", sans-serif;
 }
 
 h2 {
-  color: black;
-  font-size: 2rem;
+  color: white;
+    font-size: 2rem;
 }
 
 body p {
-  color: black;
+  color: white;
   font-size: 1rem;
   font-family: "EB Garamond", sans-serif;
 }
@@ -271,12 +227,6 @@ body p {
   justify-content: center;
   align-items: center;
   align-content: center;
-
-  // display: grid;
-  // grid-template-columns: 300px;
-  // grid-template-rows: 100%;
-  // gap: 10px;
-  // padding: 10px;
 }
 
 .section-container {
@@ -289,16 +239,25 @@ body p {
 
   box-shadow: 0px 8px 12px rgba(0, 0, 0, 0.5);
   opacity: 1;
+
+  h2 {
+    color:black;
+  }
+  p {
+    color:black
+  }
 }
 
 .intro-container {
   max-width: 600px;
-  margin: 0 1rem;
-  min-height: 100vh;
+  margin: 3rem 1rem;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+  text-align: center;
+  .contact {
+    line-height: 10px;
+  }
 }
 
 .description-container {

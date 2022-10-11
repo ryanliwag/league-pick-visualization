@@ -3,7 +3,8 @@
     <g
       class="wrapper"
       :transform="`translate(${margin.left}, ${margin.top})`"
-      opacity="0"
+      opacity="1"
+      ref='visualization' 
     >
       <g class="plot__axes">
         <!-- <g class="plot__axes__x"></g> -->
@@ -13,7 +14,7 @@
           </text>
         </g>
       </g>
-      <line
+      <!-- <line
         :x1="innerWidth / 2"
         :y1="100"
         :x2="innerWidth / 2"
@@ -57,21 +58,19 @@
           style="fill: #5496d0"
         >
           ← Blue Pick Rate
-        </text>
-      </g>
+        </text> 
+      </g> -->
       <g class="plot-area">
         <g
           v-if="toggleVisExplain"
-          :transform="
-            'translate(' + innerWidth / 2 + ',' + innerHeight / 2 + ')'
-          "
         >
-          <CircleNode
+        <IntroVis :NodeVal="sampleNode['lec']" :scaler="scales" />
+          <!-- <CircleNode
             :NodeVal="sampleNode['lec']"
             r="50"
             f="20"
             toggleWinRate="true"
-          />
+          /> -->
         </g>
         <g
           v-else
@@ -94,6 +93,7 @@
 <script>
 import * as d3 from "d3";
 import CircleNode from "./CircleNode.vue";
+import IntroVis from "./IntroVis.vue"
 export default {
   props: [
     "initialNodes",
@@ -105,6 +105,7 @@ export default {
   ],
   components: {
     CircleNode,
+    IntroVis
   },
   data() {
     return {
