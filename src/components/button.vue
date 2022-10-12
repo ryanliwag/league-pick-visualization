@@ -2,7 +2,7 @@
 // See this file to see how the IntersectionObserver is implemented
 export default {
   name: "Button",
-  props: ["isSelected", "title", 'region'],
+  props: ["isSelected", "title", "region"],
   data: function () {
     return {
       data: [],
@@ -26,7 +26,9 @@ export default {
 
 <template>
   <div>
-    <button @click="$emit('changeRegion')" :class="buttonStyling"><slot></slot></button>
+    <button @click="$emit('changeRegion')" :class="buttonStyling">
+      <slot></slot>
+    </button>
   </div>
 </template>
 
@@ -34,20 +36,22 @@ export default {
 .Button {
   border-radius: 4px;
   font-weight: bold;
-  padding: 1rem;
-  font-size: 1rem;  background: none;
-  border: 1px solid #1f1f1f;
+  font-size: 0.8rem;
+  background: none;
+  border: 0px solid whitesmoke;
   color: white;
   font-weight: 600;
   cursor: pointer;
-  width: 100px;
+  width: 60 px;
+  margin: 0 0.3rem;
 
   &:hover {
-    color: red;
+    color: whitesmoke;
   }
 
   &.is-selected {
-    background: yellow;
+    background: white;
+    color: black;
   }
 }
 </style>

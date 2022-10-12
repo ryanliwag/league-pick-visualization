@@ -3,9 +3,30 @@
     <g
       class="wrapper"
       :transform="`translate(${margin.left}, ${margin.top})`"
-      opacity="1"
-      ref='visualization' 
+      opacity="0"
+      ref="visualization"
     >
+      <g class="plot-area">
+        <g v-if="toggleVisExplain">
+          <IntroVis :NodeVal="sampleNode['lec']" :scaler="scales" />
+        </g>
+        <g v-else>
+          <g
+            class="plot__circles"
+            v-for="node in nodes"
+            :key="node.index"
+            :transform="'translate(' + node.x + ',' + node.y + ')'"
+          >
+            <CircleNode
+              :NodeVal="node[section]"
+              :r="scales.r(node[section].totalpickrate)"
+              :f="scales.f(node[section].totalpickrate)"
+              :toggleWinRate="toggleWinRate"
+            />
+          </g>
+          <BubbleAnnotations :scaler="scales" :toggleWinRate="toggleWinRate"/>
+        </g>
+      </g>
       <g class="plot__axes">
         <!-- <g class="plot__axes__x"></g> -->
         <g class="plot__axes__y">
@@ -14,86 +35,15 @@
           </text>
         </g>
       </g>
-      <!-- <line
-        :x1="innerWidth / 2"
-        :y1="100"
-        :x2="innerWidth / 2"
-        :y2="innerHeight"
-        style="stroke: gray; stroke-width: 2; opacity: 0.7"
-      />
-      <text
-        :x="innerWidth / 2"
-        y="100"
-        font-size="10"
-        text-anchor="middle"
-        style="fill: white"
-      >
-        Equal Pick Rate
-      </text>
-      <g
-        class="description2"
-        :transform="`translate(${innerWidth / 2}, ${innerHeight / 2})`"
-      >
-        <text
-          y="150"
-          font-size="1.2rem"
-          text-anchor="middle"
-          style="fill: white"
-        >
-          Size of Bubble depends on total pick rate
-        </text>
-
-        <text
-          x="100"
-          font-size="1.2rem"
-          text-anchor="start"
-          style="fill: #f51641"
-        >
-          Red Pick Rate →
-        </text>
-        <text
-          x="-100"
-          font-size="1.2rem"
-          text-anchor="end"
-          style="fill: #5496d0"
-        >
-          ← Blue Pick Rate
-        </text> 
-      </g> -->
-      <g class="plot-area">
-        <g
-          v-if="toggleVisExplain"
-        >
-        <IntroVis :NodeVal="sampleNode['lec']" :scaler="scales" />
-          <!-- <CircleNode
-            :NodeVal="sampleNode['lec']"
-            r="50"
-            f="20"
-            toggleWinRate="true"
-          /> -->
-        </g>
-        <g
-          v-else
-          class="plot__circles"
-          v-for="node in nodes"
-          :key="node.index"
-          :transform="'translate(' + node.x + ',' + node.y + ')'"
-        >
-          <CircleNode
-            :NodeVal="node[section]"
-            :r="scales.r(node[section].totalpickrate)"
-            :f="scales.f(node[section].totalpickrate)"
-            :toggleWinRate="toggleWinRate"
-          />
-        </g>
-      </g>
     </g>
   </svg>
 </template>
+
 <script>
 import * as d3 from "d3";
 import CircleNode from "./CircleNode.vue";
-import IntroVis from "./IntroVis.vue"
+import IntroVis from "./IntroVis.vue";
+import BubbleAnnotations from "./BubbleAnnotations.vue";
 export default {
   props: [
     "initialNodes",
@@ -105,12 +55,13 @@ export default {
   ],
   components: {
     CircleNode,
-    IntroVis
+    IntroVis,
+    BubbleAnnotations,
   },
   data() {
     return {
       nodes: this.initialNodes,
-      margin: { top: 100, bottom: 100, left: 50, right: 50 },
+      margin: { top: 100, bottom: 100, left: 100, right: 100 },
       width: 0,
       height: 0,
       scales: {
@@ -131,11 +82,11 @@ export default {
     this.scales.r = d3
       .scaleLinear()
       .domain([0, 1])
-      .range([7, Math.max(this.width * 0.04, 10)]);
+      .range([10, Math.max(this.width * 0.06, 15)]);
     this.scales.f = d3
       .scaleLinear()
       .domain([0, 1])
-      .range([7, Math.max(this.width * 0.01, 16)]);
+      .range([10, Math.max(this.width * 0.02, 16)]);
     this.render();
     console.log(
       this.width,
@@ -147,6 +98,15 @@ export default {
   created() {
     console.log(this.section);
     this.simulation = d3.forceSimulation(this.nodes);
+    this.scales.x = d3
+      .scaleLinear()
+      .domain([0, 1])
+      .range([this.x_scale_margin, this.innerWidth - this.x_scale_margin]);
+
+    this.scales.y = d3
+      .scaleLinear()
+      .domain([0, 1])
+      .range([this.innerHeight, 0]);
   },
   watch: {
     startVisualization: {
@@ -201,22 +161,17 @@ export default {
       }
     },
     changeDescView() {
-      if (this.toggleVisExplain) {
-        d3.select(".description2")
-          .transition()
-          .duration(600)
-          .attr(
-            "transform",
-            `translate(${this.innerWidth / 2}, ${this.innerHeight / 2})`
-          )
-          .attr("opacity", 1);
-      } else {
-        d3.select(".description2")
-          .transition()
-          .duration(600)
-          .attr("transform", `translate(${this.innerWidth / 2}, ${0})`)
-          .attr("opacity", 0);
-      }
+      // if (this.toggleVisExplain) {
+      //   d3.select(".plot-area")
+      //     .transition()
+      //     .duration(600)
+      //     .attr("opacity", 1);
+      // } else {
+      //   d3.select(".plot-area")
+      //     .transition()
+      //     .duration(600)
+      //     .attr("opacity", 0);
+      // }
     },
     render() {
       this.initChart();
@@ -232,7 +187,7 @@ export default {
       this.scales.y = d3
         .scaleLinear()
         .domain([0, 1])
-        .range([this.innerHeight, this.margin.top]);
+        .range([this.innerHeight, 0]);
 
       this.UpdateSimulationData();
     },
@@ -243,12 +198,13 @@ export default {
     },
     UpdateSimulationData() {
       this.simulation
+        .force("charge", d3.forceManyBody().strength(-1))
         .force(
           "x",
           d3
             .forceX()
             .x((d) => this.scales.x(d[this.section].red_weight))
-            .strength(this.toggleWinRate ? 0.03 : 0.7)
+            .strength(this.toggleWinRate ? 0.4 : 1)
         )
         .force(
           "y",
@@ -259,16 +215,19 @@ export default {
                 ? this.scales.y(d[this.section].winrate)
                 : this.scales.y(0.5)
             )
-            .strength(this.toggleWinRate ? 1 : 0.02)
+            .strength(this.toggleWinRate ? 1 : 0.05)
         )
         .force(
           "collision",
-          d3.forceCollide().radius((d) => {
-            return this.scales.r(d[this.section].totalpickrate) + 8;
-          })
+          d3
+            .forceCollide()
+            .radius((d) => {
+              return this.scales.r(d[this.section].totalpickrate) + 12;
+            })
+            .strength(1)
         )
         .on("tick", this.ticked);
-      this.simulation.alpha(0.1).alphaDecay(0).restart();
+      this.simulation.alpha(0.07).alphaDecay(0).velocityDecay(0.4).restart();
     },
     DrawAxis() {
       if (this.toggleWinRate) {

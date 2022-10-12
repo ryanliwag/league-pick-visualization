@@ -1,10 +1,10 @@
 <template>
-  <svg id="visualization" :viewBox="viewBox" >
+  <svg id="visualization" :viewBox="viewBox">
     <g class="wrapper" :transform="`translate(${margin.left}, ${margin.top})`">
       <g class="plot__axes">
         <g
           class="plot__axes__x"
-          :transform="`translate(0, ${innerHeight/2})`"
+          :transform="`translate(0, ${innerHeight / 2})`"
         ></g>
         <g class="plot__axes__y"></g>
       </g>
@@ -31,7 +31,6 @@
                 scales.r(node.total_times)
               "
               :height="scales.r(node.total_times) * 2"
-
               fill="#C33030"
             ></rect>
           </clipPath>
@@ -45,7 +44,6 @@
         <circle
           :r="scales.r(node.total_times)"
           :clip-path="'url(#circle' + node.index + ')'"
-
           fill="#442FDA"
         />
         <text
@@ -104,7 +102,9 @@ export default {
       .force(
         "collision",
         d3.forceCollide().radius((d) => this.scales.r(d.total_times) + 2)
-      ).alphaDecay(0.01).velocityDecay(0.6)
+      )
+      .alphaDecay(0.01)
+      .velocityDecay(0.6);
   },
   created() {
     // simulation
@@ -135,7 +135,10 @@ export default {
       this.scales.y = d3
         .scaleLinear()
         .domain([1, 7])
-        .range([ this.margin.top+this.yAxisPadding, this.innerHeight-this.yAxisPadding]);
+        .range([
+          this.margin.top + this.yAxisPadding,
+          this.innerHeight - this.yAxisPadding,
+        ]);
       d3.select(".plot__axes__y").call(d3.axisLeft(this.scales.y));
 
       // update simulation
@@ -144,7 +147,6 @@ export default {
         d3.forceY((d) => Math.round(this.scales.y(d.pick_order_mean)))
       );
       this.simulation.alpha(1).alphaDecay(0.001).velocityDecay(0.3).restart();
-
     },
     setScales() {
       // x axis scale
@@ -194,24 +196,6 @@ export default {
     },
   },
 };
-//  const t = d3.transition().duration(750);
-//       svg.transition(t).attr('viewBox', [0, 0, width, height]);
-
-//       // Update domain of y-Axis
-//       y.domain(split ? years : ['All']);
-//       y.range(split ? [splitHeight - margin.top - margin.bottom, 0] : [noSplitHeight - margin.top - margin.bottom, 0]);
-//       yAxisContainer.call(yAxis, y, split ? years : ['All'])
-//         .call(g => g.select('.domain').remove())
-//         .call(g => g.selectAll('.tick line').remove());
-
-//       // Update simulation
-//       force.force('y', split ? d3.forceY(d => y(d.year) + y.bandwidth() / 2) : // If split by year align by year
-//                                d3.forceY((noSplitHeight - margin.top - margin.bottom) / 2)); // If not split align to middle
-//       //force.nodes(running);
-//       force.alpha(1).restart();
-
-//       // Update median line
-//       medianLine.transition(t).attr('y2', split ? splitHeight - 20 : noSplitHeight);
 </script>
 
 <style>

@@ -55,7 +55,7 @@ export default {
       ></rect>
     </clipPath>
     <filter id="f1" x="0%" y="0%" :width="r * 2 + 2" :height="r * 2 + 2">
-      <feOffset result="offOut" in="SourceGraphic" dx="2" dy="2" />
+      <feOffset result="offOut" in="SourceGraphic" dx="1" dy="1" />
       <feBlend in="SourceGraphic" in2="offOut" mode="normal" />
     </filter>
   </defs>
