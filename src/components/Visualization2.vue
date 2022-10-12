@@ -198,13 +198,13 @@ export default {
     },
     UpdateSimulationData() {
       this.simulation
-        .force("charge", d3.forceManyBody().strength(-1))
+        .force("charge", d3.forceManyBody())
         .force(
           "x",
           d3
             .forceX()
             .x((d) => this.scales.x(d[this.section].red_weight))
-            .strength(this.toggleWinRate ? 0.4 : 1)
+            .strength(this.toggleWinRate ? 1 : 1)
         )
         .force(
           "y",
@@ -215,7 +215,7 @@ export default {
                 ? this.scales.y(d[this.section].winrate)
                 : this.scales.y(0.5)
             )
-            .strength(this.toggleWinRate ? 1 : 0.05)
+            .strength(this.toggleWinRate ? 1 : 0.2)
         )
         .force(
           "collision",
@@ -224,10 +224,10 @@ export default {
             .radius((d) => {
               return this.scales.r(d[this.section].totalpickrate) + 12;
             })
-            .strength(1)
+            
         )
         .on("tick", this.ticked);
-      this.simulation.alpha(0.07).alphaDecay(0).velocityDecay(0.4).restart();
+      this.simulation.alpha(0.1).alphaDecay(0.01).velocityDecay(0.36  ).restart();
     },
     DrawAxis() {
       if (this.toggleWinRate) {

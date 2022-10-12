@@ -31,8 +31,6 @@ export default {
   components: {
     Visualization,
     Button,
-    // BubbleChart,
-    // Visualization,
   },
   mounted() {
     observer_noVis.value = onIntersect(
